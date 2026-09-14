@@ -46,6 +46,11 @@ export default function Home() {
           </article>
         ))}
       </section>
+
+      <footer>
+        Mobile Legends: Bang Bang and related marks belong to their respective owners. MLBB Chunky is an unofficial community project. Optional account-data integration is powered by {" "}
+        <a href="https://arena.rone.dev" target="_blank" rel="noreferrer">Rone Arena</a> when enabled.
+      </footer>
     </main>
   );
 }

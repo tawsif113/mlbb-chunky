@@ -12,5 +12,12 @@ spring:
   flyway:
     enabled: true
 
+app:
+  mlbb:
+    # none = fail closed; rone = use the unofficial Rone Arena hosted API.
+    identity-provider: ${MLBB_IDENTITY_PROVIDER:none}
+    rone:
+      base-url: ${RONE_ARENA_BASE_URL:https://arena.rone.dev/api}
+
 server:
   port: ${PORT:8080}

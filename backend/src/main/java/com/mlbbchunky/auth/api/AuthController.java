@@ -4,6 +4,7 @@ import com.mlbbchunky.auth.application.AuthService;
 import com.mlbbchunky.auth.application.MlbbIdentityProvider.VerifiedMlbbProfile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,8 @@ public class AuthController {
     public record VerifyRequest(
             @Positive long roleId,
             @Positive long zoneId,
-            @NotBlank String verificationCode
+            @NotBlank
+            @Pattern(regexp = "\\d{4}", message = "verificationCode must be the 4-digit in-game code")
+            String verificationCode
     ) {}
 }
