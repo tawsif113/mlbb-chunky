@@ -1,17 +1,20 @@
 package com.mlbbchunky.auth.application;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
-    private final MlbbIdentityProvider identityProvider;
+    private final ObjectProvider<MlbbIdentityProvider> identityProviders;
 
-    public AuthService(MlbbIdentityProvider identityProvider) {
-        this.identityProvider = identityProvider;
+    public AuthService(ObjectProvider<MlbbIdentityProvider> identityProviders) {
+        this.identityProviders = identityProviders;
     }
 
     public void sendVerificationCode(long roleId, long zoneId) {
-        identityProvider.sendVerificationCode(roleId, zoneId);
+        provider().sendVerificationCode(roleId, zoneId);
     }
 
     public MlbbIdentityProvider.VerifiedMlbbProfile verify(
@@ -19,6 +22,17 @@ public class AuthService {
             long zoneId,
             String verificationCode
     ) {
-        return identityProvider.verify(roleId, zoneId, verificationCode);
+        return provider().verify(roleId, zoneId, verificationCode);
+    }
+
+    private MlbbIdentityProvider provider() {
+        MlbbIdentityProvider provider = identityProviders.getIfAvailable();
+        if (provider == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "No MLBB identity provider is configured yet"
+            );
+        }
+        return provider;
     }
 }
