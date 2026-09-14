@@ -17,8 +17,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: maven
-      - run: mvn -B test
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.1.0'
+      - run: gradle --no-daemon test
 
   frontend:
     runs-on: ubuntu-latest
