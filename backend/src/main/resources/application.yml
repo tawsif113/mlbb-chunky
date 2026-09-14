@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: mlbb-chunky
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mlbb_chunky}
+    username: ${DB_USERNAME:chunky}
+    password: ${DB_PASSWORD:chunky}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+app:
+  mlbb:
+    # none = fail closed; rone = use the unofficial Rone Arena hosted API.
+    identity-provider: ${MLBB_IDENTITY_PROVIDER:none}
+    rone:
+      base-url: ${RONE_ARENA_BASE_URL:https://arena.rone.dev/api}
+
+server:
+  port: ${PORT:8080}

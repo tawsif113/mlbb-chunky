@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: mlbb_chunky
+      POSTGRES_USER: chunky
+      POSTGRES_PASSWORD: chunky
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chunky -d mlbb_chunky"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
