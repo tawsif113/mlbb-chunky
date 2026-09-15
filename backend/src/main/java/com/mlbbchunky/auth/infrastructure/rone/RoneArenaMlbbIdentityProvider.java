@@ -15,11 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 public class RoneArenaMlbbIdentityProvider implements MlbbIdentityProvider {
     private final RestClient client;
 
-    public RoneArenaMlbbIdentityProvider(
-            RestClient.Builder builder,
-            @Value("${app.mlbb.rone.base-url}") String baseUrl
-    ) {
-        this.client = builder.baseUrl(baseUrl).build();
+    public RoneArenaMlbbIdentityProvider(@Value("${app.mlbb.rone.base-url}") String baseUrl) {
+        this.client = RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
     }
 
     @Override
