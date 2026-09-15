@@ -1,18 +1,32 @@
+# IDE / editor
 .idea/
 .vscode/
+*.iml
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Environment files
 .env
 .env.*
 !.env.example
 
-# Java
-backend/target/
+# Logs
 *.log
 
-# Node
+# Backend - Gradle / Java
+backend/.gradle/
+backend/build/
+backend/out/
+*.class
+
+# Frontend - Next.js / Node
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+frontend/.turbo/
+frontend/.vercel/
 
-# Local infra
+# Local infrastructure
 infra/postgres-data/
