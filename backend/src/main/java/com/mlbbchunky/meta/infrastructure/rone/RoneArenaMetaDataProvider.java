@@ -27,7 +27,7 @@ public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
     public List<HeroMetaData> fetchHeroMeta(String rankScope, int periodDays) {
         HeroRankEnvelope response = client.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/heroes/heroes/rank")
+                        .path("/heroes/rank")
                         .queryParam("days", periodDays)
                         .queryParam("rank", rankScope)
                         .queryParam("sort_field", "pick_rate")
