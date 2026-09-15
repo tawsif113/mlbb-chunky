@@ -23,6 +23,7 @@ export default function LinkAccountPage() {
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [changingAccount, setChangingAccount] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -75,9 +76,13 @@ export default function LinkAccountPage() {
         body: JSON.stringify({ roleId: Number(roleId), zoneId: Number(zoneId), verificationCode: code }),
       });
       if (!response.ok) throw new Error(`Verification failed (${response.status})`);
-      setProfile(await response.json());
+      const verifiedProfile = await response.json() as Profile;
+      setProfile(verifiedProfile);
+      setRoleId(String(verifiedProfile.roleId ?? roleId));
+      setZoneId(String(verifiedProfile.zoneId ?? zoneId));
       setCode("");
       setCodeSent(false);
+      setChangingAccount(false);
       setMessage("MLBB account verified. You are now signed in to Chunky.");
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : "Verification failed");
@@ -96,8 +101,11 @@ export default function LinkAccountPage() {
       });
       if (!response.ok) throw new Error(`Could not sign out (${response.status})`);
       setProfile(null);
+      setChangingAccount(false);
       setCodeSent(false);
       setCode("");
+      setRoleId("");
+      setZoneId("");
       setMessage("Signed out of Chunky. Your verified account record remains saved.");
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : "Could not sign out");
@@ -105,6 +113,24 @@ export default function LinkAccountPage() {
       setBusy(false);
     }
   }
+
+  function startAccountChange() {
+    setChangingAccount(true);
+    setCodeSent(false);
+    setCode("");
+    setMessage("Enter the MLBB account you want to link instead.");
+  }
+
+  function cancelAccountChange() {
+    setChangingAccount(false);
+    setCodeSent(false);
+    setCode("");
+    setRoleId(String(profile?.roleId ?? ""));
+    setZoneId(String(profile?.zoneId ?? ""));
+    setMessage("");
+  }
+
+  const showLinkForm = !profile || changingAccount;
 
   return (
     <main>
@@ -117,19 +143,38 @@ export default function LinkAccountPage() {
 
       <section className="workspace two-column">
         <div className="panel">
-          <form className="form-panel" onSubmit={sendCode}>
-            <label>User / Role ID<input inputMode="numeric" value={roleId} onChange={(e) => setRoleId(e.target.value)} required /></label>
-            <label>Zone / Server ID<input inputMode="numeric" value={zoneId} onChange={(e) => setZoneId(e.target.value)} required /></label>
-            <button disabled={busy || !roleId || !zoneId} type="submit">{busy ? "Requesting…" : "Send in-game code"}</button>
-          </form>
+          {showLinkForm ? (
+            <>
+              <form className="form-panel" onSubmit={sendCode}>
+                <label>User / Role ID<input inputMode="numeric" value={roleId} onChange={(e) => setRoleId(e.target.value.replace(/\D/g, ""))} required /></label>
+                <label>Zone / Server ID<input inputMode="numeric" value={zoneId} onChange={(e) => setZoneId(e.target.value.replace(/\D/g, ""))} required /></label>
+                <button disabled={busy || !roleId || !zoneId} type="submit">{busy ? "Requesting…" : "Send in-game code"}</button>
+              </form>
 
-          {codeSent && (
-            <form className="form-panel verification-form" onSubmit={verify}>
-              <label>4-digit verification code<input maxLength={4} pattern="\d{4}" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="1234" required /></label>
-              <button disabled={busy || code.length !== 4} type="submit">Verify account</button>
-            </form>
+              {codeSent && (
+                <form className="form-panel verification-form" onSubmit={verify}>
+                  <label>4-digit verification code<input maxLength={4} pattern="\d{4}" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="1234" required /></label>
+                  <button disabled={busy || code.length !== 4} type="submit">Verify account</button>
+                </form>
+              )}
+
+              {profile && changingAccount && (
+                <button className="button secondary account-cancel" disabled={busy} type="button" onClick={cancelAccountChange}>Cancel account change</button>
+              )}
+            </>
+          ) : (
+            <div className="linked-account-state">
+              <span className="card-kicker">Connected account</span>
+              <h2>{profile.nickname ?? "MLBB Player"}</h2>
+              <p>Role ID {profile.roleId} · Zone {profile.zoneId}</p>
+              <p>Your Chunky session is active. You only need another in-game code if you want to switch the linked MLBB account.</p>
+              <div className="account-actions">
+                <button className="button secondary" disabled={busy} type="button" onClick={startAccountChange}>Change linked account</button>
+                <button disabled={busy} type="button" onClick={logout}>{busy ? "Signing out…" : "Sign out of Chunky"}</button>
+              </div>
+            </div>
           )}
-          {profile && <button disabled={busy} type="button" onClick={logout}>Sign out of Chunky</button>}
+
           {message && <p className="status-text">{message}</p>}
         </div>
 
@@ -137,7 +182,7 @@ export default function LinkAccountPage() {
           <span className="card-kicker">Verified profile</span>
           {profile ? (
             <>
-              {profile.avatarUrl && <img src={profile.avatarUrl} alt={`${profile.nickname ?? "MLBB Player"} avatar`} width={96} height={96} />}
+              {profile.avatarUrl && <img className="account-avatar" src={profile.avatarUrl} alt={`${profile.nickname ?? "MLBB Player"} avatar`} width={96} height={96} />}
               <h2>{profile.nickname ?? "MLBB Player"}</h2>
               <div className="profile-list">
                 <span>Role ID <strong>{profile.roleId ?? roleId}</strong></span>
