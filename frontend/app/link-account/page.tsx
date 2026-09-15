@@ -8,11 +8,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
 type Profile = {
   roleId?: number;
   zoneId?: number;
-  name?: string;
-  avatar?: string;
+  nickname?: string;
+  avatarUrl?: string;
   level?: number;
   rankLevel?: number;
-  historyRankLevel?: number;
+  highestRankLevel?: number;
   registeredCountry?: string;
 };
 
@@ -95,11 +95,13 @@ export default function LinkAccountPage() {
           <span className="card-kicker">Verified profile</span>
           {profile ? (
             <>
-              <h2>{profile.name ?? "MLBB Player"}</h2>
+              <h2>{profile.nickname ?? "MLBB Player"}</h2>
               <div className="profile-list">
                 <span>Role ID <strong>{profile.roleId ?? roleId}</strong></span>
                 <span>Zone ID <strong>{profile.zoneId ?? zoneId}</strong></span>
                 <span>Level <strong>{profile.level ?? "—"}</strong></span>
+                <span>Rank <strong>{profile.rankLevel ?? "—"}</strong></span>
+                <span>Highest rank <strong>{profile.highestRankLevel ?? "—"}</strong></span>
                 <span>Country <strong>{profile.registeredCountry ?? "—"}</strong></span>
               </div>
             </>
