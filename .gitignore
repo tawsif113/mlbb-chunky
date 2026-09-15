@@ -1,34 +1,21 @@
-# IDE / editor
+# Repository-wide IDE / editor files
 .idea/
 .vscode/
 *.iml
+*.swp
+*~
 
-# OS
+# OS metadata
 .DS_Store
 Thumbs.db
 
-# Environment files
+# Environment / secrets
 .env
 .env.*
 !.env.example
 
 # Logs
 *.log
-
-# Backend - Gradle / Java
-backend/.gradle/
-backend/build/
-backend/out/
-*.class
-
-# Frontend - Next.js / Node
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/.turbo/
-frontend/.vercel/
-frontend/next-env.d.ts
-frontend/*.tsbuildinfo
 
 # Local infrastructure
 infra/postgres-data/
