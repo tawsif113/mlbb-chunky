@@ -30,7 +30,9 @@ export MLBB_META_PERIOD_DAYS=7
 ./gradlew bootRun
 ```
 
-The meta provider reads `/api/heroes/rank`. Each run appends a historical snapshot to `hero_meta_snapshot`; it does not overwrite earlier snapshots.
+The provider first requests Rone's bulk `/api/heroes/rank` endpoint. If that upstream-backed route is temporarily unavailable, 7/15/30-day imports fall back to `/api/academy/heroes/{heroId}/trends` for each hero and average the daily pick, ban and win rates across the requested window. The 1-day and 3-day imports currently require the bulk endpoint because the Academy trend endpoint does not expose those windows.
+
+Each successful run appends a historical snapshot to `hero_meta_snapshot`; it does not overwrite earlier snapshots.
 
 The configured `MLBB_META_RANK_SCOPE` and `MLBB_META_PERIOD_DAYS` also determine which latest snapshot the hero catalog and Draft Assistant use. Defaults are `all` and `7`.
 
@@ -41,6 +43,8 @@ GET /api/v1/meta/heroes?rankScope=all&periodDays=7
 ```
 
 The frontend `/meta` page lets you inspect stored snapshots and sort them by win, pick or ban rate.
+
+Startup meta ingestion is best-effort: a provider outage is logged but does not terminate the Chunky application. When a previous snapshot exists, the application continues serving that stored data.
 
 ## Production note
 
