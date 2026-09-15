@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { SiteNav } from "../components/SiteNav";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 type Profile = {
+  userId?: string;
   roleId?: number;
   zoneId?: number;
   nickname?: string;
@@ -25,6 +26,22 @@ export default function LinkAccountPage() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    fetch(`${API_BASE}/api/v1/auth/mlbb/me`, { credentials: "include" })
+      .then(async (response) => {
+        if (response.status === 401) return null;
+        if (!response.ok) throw new Error(`Could not load session (${response.status})`);
+        return response.json() as Promise<Profile>;
+      })
+      .then((currentProfile) => {
+        if (!currentProfile) return;
+        setProfile(currentProfile);
+        setRoleId(String(currentProfile.roleId ?? ""));
+        setZoneId(String(currentProfile.zoneId ?? ""));
+      })
+      .catch((cause) => setMessage(cause instanceof Error ? cause.message : "Could not load session"));
+  }, []);
+
   async function sendCode(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -32,6 +49,7 @@ export default function LinkAccountPage() {
     try {
       const response = await fetch(`${API_BASE}/api/v1/auth/mlbb/verification-code`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roleId: Number(roleId), zoneId: Number(zoneId) }),
       });
@@ -52,14 +70,37 @@ export default function LinkAccountPage() {
     try {
       const response = await fetch(`${API_BASE}/api/v1/auth/mlbb/verify`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roleId: Number(roleId), zoneId: Number(zoneId), verificationCode: code }),
       });
       if (!response.ok) throw new Error(`Verification failed (${response.status})`);
       setProfile(await response.json());
-      setMessage("MLBB account ownership verified.");
+      setCode("");
+      setCodeSent(false);
+      setMessage("MLBB account verified. You are now signed in to Chunky.");
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : "Verification failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function logout() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/auth/mlbb/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error(`Could not sign out (${response.status})`);
+      setProfile(null);
+      setCodeSent(false);
+      setCode("");
+      setMessage("Signed out of Chunky. Your verified account record remains saved.");
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "Could not sign out");
     } finally {
       setBusy(false);
     }
@@ -88,6 +129,7 @@ export default function LinkAccountPage() {
               <button disabled={busy || code.length !== 4} type="submit">Verify account</button>
             </form>
           )}
+          {profile && <button disabled={busy} type="button" onClick={logout}>Sign out of Chunky</button>}
           {message && <p className="status-text">{message}</p>}
         </div>
 
@@ -95,6 +137,7 @@ export default function LinkAccountPage() {
           <span className="card-kicker">Verified profile</span>
           {profile ? (
             <>
+              {profile.avatarUrl && <img src={profile.avatarUrl} alt={`${profile.nickname ?? "MLBB Player"} avatar`} width={96} height={96} />}
               <h2>{profile.nickname ?? "MLBB Player"}</h2>
               <div className="profile-list">
                 <span>Role ID <strong>{profile.roleId ?? roleId}</strong></span>
@@ -106,7 +149,7 @@ export default function LinkAccountPage() {
               </div>
             </>
           ) : (
-            <><h2>No account linked yet.</h2><p>When verification succeeds, your normalized MLBB profile will appear here. Chunky will later use this verified identity for popularity rankings and community reputation.</p></>
+            <><h2>No account linked yet.</h2><p>After verification, Chunky saves the normalized MLBB profile and keeps you signed in with an HTTP-only session cookie.</p></>
           )}
         </div>
       </section>

@@ -13,6 +13,9 @@ spring:
     enabled: true
 
 app:
+  auth:
+    session-days: ${CHUNKY_SESSION_DAYS:30}
+    secure-cookie: ${CHUNKY_SECURE_COOKIE:false}
   mlbb:
     # none = use no external provider; rone = use the unofficial Rone Arena hosted API.
     identity-provider: ${MLBB_IDENTITY_PROVIDER:none}
