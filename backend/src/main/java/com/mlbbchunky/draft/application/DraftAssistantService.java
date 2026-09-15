@@ -40,8 +40,13 @@ public class DraftAssistantService {
                 ? 5.0
                 : hero.roles().contains(request.preferredRole()) ? 15.0 : 0.0;
 
-        // Initial transparent meta score. Replace seed stats with historical snapshots.
-        double metaScore = Math.max(0, Math.min(20, (hero.winRate() - 0.45) * 200));
+        // Meta contributes up to 20 points: 14 from win rate, 3 from pick rate and 3 from ban pressure.
+        // Rates are fractions (e.g. 0.523 = 52.3%).
+        double winSignal = Math.max(0, Math.min(14, (hero.winRate() - 0.45) * 140));
+        double pickSignal = Math.max(0, Math.min(3, hero.pickRate() * 100));
+        double banSignal = Math.max(0, Math.min(3, hero.banRate() * 30));
+        double metaScore = winSignal + pickSignal + banSignal;
+
         double counterScore = overlap(hero.strongAgainst(), request.enemyHeroIds()) * 8.0;
         double synergyScore = overlap(hero.synergizesWith(), request.alliedHeroIds()) * 5.0;
 
@@ -58,7 +63,9 @@ public class DraftAssistantService {
         if (roleFit == 15) reasons.add("Matches preferred " + request.preferredRole() + " role");
         if (counterScore > 0) reasons.add("Counters one or more enemy picks");
         if (synergyScore > 0) reasons.add("Has synergy with an allied pick");
-        if (metaScore >= 12) reasons.add("Strong current win-rate signal");
+        if (hero.winRate() >= 0.52) reasons.add("Strong current win-rate signal");
+        if (hero.pickRate() >= 0.03) reasons.add("Frequently picked in the current meta");
+        if (hero.banRate() >= 0.10) reasons.add("High current ban pressure");
 
         double score = laneFit + roleFit + metaScore + counterScore + synergyScore;
         return new HeroRecommendation(hero.id(), hero.name(), round(score), breakdown, reasons);

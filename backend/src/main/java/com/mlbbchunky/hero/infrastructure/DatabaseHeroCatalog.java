@@ -4,6 +4,7 @@ import com.mlbbchunky.hero.application.HeroCatalog;
 import com.mlbbchunky.hero.domain.Hero;
 import com.mlbbchunky.hero.domain.HeroRole;
 import com.mlbbchunky.hero.domain.Lane;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
@@ -20,10 +21,19 @@ import java.util.Set;
 public class DatabaseHeroCatalog implements HeroCatalog {
     private final JdbcClient jdbc;
     private final SeedHeroCatalog fallback;
+    private final String metaRankScope;
+    private final int metaPeriodDays;
 
-    public DatabaseHeroCatalog(JdbcClient jdbc, SeedHeroCatalog fallback) {
+    public DatabaseHeroCatalog(
+            JdbcClient jdbc,
+            SeedHeroCatalog fallback,
+            @Value("${app.mlbb.meta.rank-scope:all}") String metaRankScope,
+            @Value("${app.mlbb.meta.period-days:7}") int metaPeriodDays
+    ) {
         this.jdbc = jdbc;
         this.fallback = fallback;
+        this.metaRankScope = metaRankScope;
+        this.metaPeriodDays = metaPeriodDays;
     }
 
     @Override
@@ -40,11 +50,15 @@ public class DatabaseHeroCatalog implements HeroCatalog {
                     select win_rate, pick_rate, ban_rate
                     from hero_meta_snapshot snapshot
                     where snapshot.hero_id = h.id
+                      and snapshot.rank_scope = :rankScope
+                      and snapshot.period_days = :periodDays
                     order by captured_at desc
                     limit 1
                 ) m on true
                 order by h.id
                 """)
+                .param("rankScope", metaRankScope)
+                .param("periodDays", metaPeriodDays)
                 .query((rs, rowNum) -> new BaseHeroRow(
                         rs.getLong("id"),
                         rs.getString("name"),

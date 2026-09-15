@@ -1,0 +1,127 @@
+.metaPanel {
+  overflow: hidden;
+}
+
+.metaToolbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 170px)) 1fr;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.metaToolbar label {
+  display: grid;
+  gap: 7px;
+  color: #cbd0df;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.metaStatus {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 7px;
+  color: #7f879f;
+  min-width: 0;
+}
+
+.metaStatus strong {
+  color: #f7f7fb;
+  font-size: 23px;
+}
+
+.metaStatus small {
+  margin-left: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaEmpty {
+  min-height: 220px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin: 0 -6px -6px;
+}
+
+.metaTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+.metaTable th,
+.metaTable td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #ffffff10;
+  text-align: right;
+  font-size: 13px;
+}
+
+.metaTable th {
+  color: #78819b;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.metaTable th:nth-child(1),
+.metaTable td:nth-child(1),
+.metaTable th:nth-child(2),
+.metaTable td:nth-child(2) {
+  text-align: left;
+}
+
+.metaTable tbody tr:hover {
+  background: #ffffff05;
+}
+
+.metaRank {
+  width: 48px;
+  color: #8490b8;
+  font-weight: 900;
+}
+
+.metaHero {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.metaHero img {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #ffffff18;
+}
+
+.metaHero div {
+  display: grid;
+  gap: 3px;
+}
+
+.metaHero small {
+  color: #68718d;
+  font-size: 10px;
+}
+
+@media (max-width: 820px) {
+  .metaToolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metaStatus {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .metaToolbar {
+    grid-template-columns: 1fr;
+  }
+}

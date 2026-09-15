@@ -1,4 +1,4 @@
-# Initial API contract
+# API contract
 
 Base path: `/api/v1`
 
@@ -6,7 +6,7 @@ Base path: `/api/v1`
 
 ### `GET /heroes`
 
-Returns the current hero catalog. When the database contains ingested heroes, the API returns that PostgreSQL-backed catalog; the small seed catalog is only a fallback for an empty database.
+Returns the current PostgreSQL-backed hero catalog, including image URL, roles, lanes and the latest configured meta snapshot when available.
 
 ### `GET /heroes/{heroId}`
 
@@ -28,32 +28,11 @@ Example request:
 }
 ```
 
-Example response shape:
+The response contains ranked recommendations with a transparent score breakdown for lane fit, role fit, meta, counters and synergy.
 
-```json
-[
-  {
-    "heroId": 65,
-    "heroName": "Claude",
-    "score": 52.0,
-    "breakdown": {
-      "laneFit": 30.0,
-      "roleFit": 15.0,
-      "metaScore": 7.0,
-      "counterScore": 0.0,
-      "synergyScore": 0.0
-    },
-    "reasons": [
-      "Fits GOLD lane",
-      "Matches preferred MARKSMAN role"
-    ]
-  }
-]
-```
+The meta component uses the latest snapshot for the configured `app.mlbb.meta.rank-scope` and `app.mlbb.meta.period-days` values.
 
-The score breakdown is part of the contract. The UI should be able to explain a recommendation rather than display only a rank.
-
-## MLBB account linking and Chunky session
+## MLBB account linking
 
 ### `POST /auth/mlbb/verification-code`
 
@@ -76,37 +55,35 @@ Requests an in-game verification code through the configured identity-provider a
 }
 ```
 
-Verifies account ownership, upserts the normalized MLBB profile into `app_user`, creates a local Chunky session, and returns the persisted user profile. The response also sets an HTTP-only `chunky_session` cookie. Raw session tokens are never stored in PostgreSQL; only their SHA-256 hashes are persisted.
-
-Example response shape:
-
-```json
-{
-  "userId": "9b97730b-c85f-45d2-b31f-07c393c8d776",
-  "roleId": 123456789,
-  "zoneId": 1234,
-  "nickname": "MLBB Player",
-  "avatarUrl": "https://...",
-  "level": 100,
-  "rankLevel": 200,
-  "highestRankLevel": 250,
-  "registeredCountry": "BD"
-}
-```
+Verifies account ownership, upserts the normalized profile into `app_user`, creates a Chunky session and returns the local authenticated user. The raw session token is sent only in an HTTP-only cookie; only its SHA-256 hash is stored.
 
 ### `GET /auth/mlbb/me`
 
-Returns the locally persisted authenticated user for the active `chunky_session` cookie. Returns `401` when there is no valid session.
+Returns the currently authenticated Chunky user from the session cookie.
 
 ### `POST /auth/mlbb/logout`
 
-Revokes the active local session and expires the browser cookie. The verified `app_user` record remains stored.
+Revokes the current Chunky session and clears the cookie.
 
-For local development, the session cookie is HTTP-only, `SameSite=Lax`, and not marked `Secure`. Set `CHUNKY_SECURE_COOKIE=true` behind HTTPS in production. Session lifetime defaults to 30 days and can be changed through `CHUNKY_SESSION_DAYS`.
+## Meta
+
+### `GET /meta/heroes`
+
+Query parameters:
+
+- `rankScope`: `all`, `epic`, `legend`, `mythic`, `honor`, `glory` (default `all`)
+- `periodDays`: `1`, `3`, `7`, `15`, `30` (default `7`)
+
+Example:
+
+```text
+GET /api/v1/meta/heroes?rankScope=all&periodDays=7
+```
+
+Returns the most recent stored snapshot for every hero in that rank/time window, including pick, ban and win rates and the snapshot timestamp.
 
 ## Planned next APIs
 
-- `/meta/heroes` — current and historical pick/ban/win rate
 - `/leaderboards/heroes` — popularity among verified Chunky users
 - `/community/posts` — community feed
 - `/community/posts/{id}/comments`

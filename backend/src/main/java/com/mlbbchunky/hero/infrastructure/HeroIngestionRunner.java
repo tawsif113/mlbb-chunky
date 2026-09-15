@@ -6,9 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(10)
 @ConditionalOnProperty(prefix = "app.mlbb", name = "hero-sync-on-startup", havingValue = "true")
 public class HeroIngestionRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(HeroIngestionRunner.class);

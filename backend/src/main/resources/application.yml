@@ -21,6 +21,10 @@ app:
     identity-provider: ${MLBB_IDENTITY_PROVIDER:none}
     data-provider: ${MLBB_DATA_PROVIDER:none}
     hero-sync-on-startup: ${MLBB_HERO_SYNC_ON_STARTUP:false}
+    meta-sync-on-startup: ${MLBB_META_SYNC_ON_STARTUP:false}
+    meta:
+      rank-scope: ${MLBB_META_RANK_SCOPE:all}
+      period-days: ${MLBB_META_PERIOD_DAYS:7}
     rone:
       base-url: ${RONE_ARENA_BASE_URL:https://arena.rone.dev/api}
 
