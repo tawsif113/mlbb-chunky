@@ -22,7 +22,7 @@ import java.util.Set;
 public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
     private static final Logger log = LoggerFactory.getLogger(RoneArenaMetaDataProvider.class);
     private static final int PAGE_SIZE = 200;
-    private static final Set<Integer> ACADEMY_TREND_PERIODS = Set.of(7, 15, 30);
+    private static final Set<Integer> TREND_PERIODS = Set.of(7, 15, 30);
 
     private final RestClient client;
 
@@ -35,17 +35,17 @@ public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
         try {
             return fetchBulkHeroRank(rankScope, periodDays);
         } catch (RestClientResponseException | ResponseStatusException bulkFailure) {
-            if (!ACADEMY_TREND_PERIODS.contains(periodDays)) {
+            if (!TREND_PERIODS.contains(periodDays)) {
                 throw bulkFailure;
             }
 
             log.warn(
-                    "Rone bulk hero-rank endpoint failed ({}). Falling back to Academy hero trends for {}d / {}.",
+                    "Rone bulk hero-rank endpoint failed ({}). Falling back to per-hero trend endpoints for {}d / {}.",
                     bulkFailure.getMessage(),
                     periodDays,
                     rankScope
             );
-            return fetchAcademyTrendFallback(rankScope, periodDays);
+            return fetchTrendFallback(rankScope, periodDays);
         }
     }
 
@@ -90,7 +90,7 @@ public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
                 .toList();
     }
 
-    private List<HeroMetaData> fetchAcademyTrendFallback(String rankScope, int periodDays) {
+    private List<HeroMetaData> fetchTrendFallback(String rankScope, int periodDays) {
         List<Long> heroIds = fetchHeroIds();
         List<HeroMetaData> result = new ArrayList<>();
 
@@ -106,11 +106,11 @@ public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
         }
 
         if (result.isEmpty()) {
-            throw providerFailure("Rone bulk meta and Academy trend fallback both returned no usable hero statistics");
+            throw providerFailure("Rone bulk meta and per-hero trend fallbacks returned no usable hero statistics");
         }
 
         log.info(
-                "Rone Academy trend fallback produced {} hero meta records from {} catalog heroes",
+                "Rone trend fallback produced {} hero meta records from {} catalog heroes",
                 result.size(),
                 heroIds.size()
         );
@@ -143,25 +143,58 @@ public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
     }
 
     private HeroMetaData fetchHeroTrend(long heroId, String rankScope, int periodDays) {
-        AcademyTrendEnvelope response = client.get()
+        try {
+            return fetchHeroesTrend(heroId, rankScope, periodDays);
+        } catch (RestClientResponseException | ResponseStatusException heroesFailure) {
+            log.debug(
+                    "Rone /heroes/{}/trends failed ({}); trying Academy trend endpoint.",
+                    heroId,
+                    heroesFailure.getMessage()
+            );
+            return fetchAcademyTrend(heroId, rankScope, periodDays);
+        }
+    }
+
+    private HeroMetaData fetchHeroesTrend(long heroId, String rankScope, int periodDays) {
+        TrendEnvelope response = client.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/academy/heroes/{heroId}/trends")
-                        .queryParam("days", periodDays)
+                        .path("/heroes/{heroId}/trends")
                         .queryParam("rank", rankScope)
-                        .queryParam("size", 5)
+                        .queryParam("past-days", periodDays)
+                        .queryParam("size", 20)
                         .queryParam("index", 1)
                         .queryParam("lang", "en")
                         .build(heroId))
                 .retrieve()
-                .body(AcademyTrendEnvelope.class);
+                .body(TrendEnvelope.class);
 
+        return aggregateTrendResponse(response, heroId);
+    }
+
+    private HeroMetaData fetchAcademyTrend(long heroId, String rankScope, int periodDays) {
+        TrendEnvelope response = client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/academy/heroes/{heroId}/trends")
+                        .queryParam("days", periodDays)
+                        .queryParam("rank", rankScope)
+                        .queryParam("size", 20)
+                        .queryParam("index", 1)
+                        .queryParam("lang", "en")
+                        .build(heroId))
+                .retrieve()
+                .body(TrendEnvelope.class);
+
+        return aggregateTrendResponse(response, heroId);
+    }
+
+    private HeroMetaData aggregateTrendResponse(TrendEnvelope response, long heroId) {
         if (response == null || response.code() != 0 || response.data() == null || response.data().records() == null) {
             String message = response == null ? null : firstNonBlank(response.message(), response.msg());
             throw providerFailure(message);
         }
 
         List<DailyRate> dailyRates = response.data().records().stream()
-                .map(AcademyTrendRecordEnvelope::data)
+                .map(TrendRecordEnvelope::data)
                 .filter(data -> data != null && data.rates() != null)
                 .flatMap(data -> data.rates().stream())
                 .filter(rate -> rate != null
@@ -225,16 +258,16 @@ public class RoneArenaMetaDataProvider implements MlbbMetaDataProvider {
     record AcademyHeroRecord(@JsonProperty("hero_id") Long heroId) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record AcademyTrendEnvelope(int code, String msg, String message, AcademyTrendData data) {}
+    record TrendEnvelope(int code, String msg, String message, TrendData data) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record AcademyTrendData(List<AcademyTrendRecordEnvelope> records, Integer total) {}
+    record TrendData(List<TrendRecordEnvelope> records, Integer total) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record AcademyTrendRecordEnvelope(AcademyTrendRecord data) {}
+    record TrendRecordEnvelope(TrendRecord data) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record AcademyTrendRecord(
+    record TrendRecord(
             @JsonProperty("main_heroid") Long heroId,
             @JsonProperty("win_rate") List<DailyRate> rates
     ) {}
