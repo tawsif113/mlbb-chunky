@@ -30,7 +30,7 @@ export MLBB_META_PERIOD_DAYS=7
 ./gradlew bootRun
 ```
 
-The meta provider reads `/api/heroes/heroes/rank`. Each run appends a historical snapshot to `hero_meta_snapshot`; it does not overwrite earlier snapshots.
+The meta provider reads `/api/heroes/rank`. Each run appends a historical snapshot to `hero_meta_snapshot`; it does not overwrite earlier snapshots.
 
 The configured `MLBB_META_RANK_SCOPE` and `MLBB_META_PERIOD_DAYS` also determine which latest snapshot the hero catalog and Draft Assistant use. Defaults are `all` and `7`.
 
