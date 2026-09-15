@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -28,11 +27,10 @@ public class RoneArenaHeroDataProvider implements MlbbHeroDataProvider {
 
     private final RestClient client;
 
-    public RoneArenaHeroDataProvider(
-            RestClient.Builder builder,
-            @Value("${app.mlbb.rone.base-url}") String baseUrl
-    ) {
-        this.client = builder.baseUrl(baseUrl).build();
+    public RoneArenaHeroDataProvider(@Value("${app.mlbb.rone.base-url}") String baseUrl) {
+        this.client = RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
     }
 
     @Override
