@@ -32,14 +32,24 @@ public class HeroMetaIngestionRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        var result = service.sync(rankScope, periodDays);
-        log.info(
-                "MLBB meta synchronized: fetched={}, persisted={}, rank={}, period={}d at {}",
-                result.fetched(),
-                result.persisted(),
-                result.rankScope(),
-                result.periodDays(),
-                result.capturedAt()
-        );
+        try {
+            var result = service.sync(rankScope, periodDays);
+            log.info(
+                    "MLBB meta synchronized: fetched={}, persisted={}, rank={}, period={}d at {}",
+                    result.fetched(),
+                    result.persisted(),
+                    result.rankScope(),
+                    result.periodDays(),
+                    result.capturedAt()
+            );
+        } catch (RuntimeException failure) {
+            log.error(
+                    "MLBB meta startup sync failed for rank={} period={}d; Chunky will stay online and use the latest stored snapshot: {}",
+                    rankScope,
+                    periodDays,
+                    failure.getMessage(),
+                    failure
+            );
+        }
     }
 }
