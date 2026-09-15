@@ -5,6 +5,7 @@ import java.util.Set;
 public record Hero(
         long id,
         String name,
+        String imageUrl,
         Set<HeroRole> roles,
         Set<Lane> lanes,
         double winRate,

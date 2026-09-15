@@ -18,11 +18,11 @@ class DraftAssistantServiceTest {
     @Test
     void ranks_lane_fit_counter_and_synergy_above_generic_meta_pick() {
         Hero ideal = new Hero(
-                10, "Ideal", Set.of(HeroRole.MARKSMAN), Set.of(Lane.GOLD),
+                10, "Ideal", null, Set.of(HeroRole.MARKSMAN), Set.of(Lane.GOLD),
                 0.51, 0.05, 0.02, Set.of(99L), Set.of(50L)
         );
         Hero metaOnly = new Hero(
-                11, "MetaOnly", Set.of(HeroRole.MAGE), Set.of(Lane.MID),
+                11, "MetaOnly", null, Set.of(HeroRole.MAGE), Set.of(Lane.MID),
                 0.56, 0.08, 0.10, Set.of(), Set.of()
         );
 
@@ -59,9 +59,9 @@ class DraftAssistantServiceTest {
 
     @Test
     void excludes_banned_and_already_selected_heroes() {
-        Hero one = new Hero(1, "One", Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.50, 0, 0, Set.of(), Set.of());
-        Hero two = new Hero(2, "Two", Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.50, 0, 0, Set.of(), Set.of());
-        Hero three = new Hero(3, "Three", Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.50, 0, 0, Set.of(), Set.of());
+        Hero one = new Hero(1, "One", null, Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.50, 0, 0, Set.of(), Set.of());
+        Hero two = new Hero(2, "Two", null, Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.50, 0, 0, Set.of(), Set.of());
+        Hero three = new Hero(3, "Three", null, Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.50, 0, 0, Set.of(), Set.of());
 
         HeroCatalog catalog = new HeroCatalog() {
             @Override public List<Hero> findAll() { return List.of(one, two, three); }

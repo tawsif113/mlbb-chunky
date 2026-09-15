@@ -12,14 +12,14 @@ import java.util.Set;
 
 @Component
 public class SeedHeroCatalog implements HeroCatalog {
-    // Temporary seed data only. Replace with ingested MLBB data in Phase 2.
+    // Temporary fallback data. DatabaseHeroCatalog takes over after live ingestion.
     private final List<Hero> heroes = List.of(
-            new Hero(1, "Miya", Set.of(HeroRole.MARKSMAN), Set.of(Lane.GOLD), 0.50, 0.07, 0.01, Set.of(), Set.of(6L)),
-            new Hero(6, "Tigreal", Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.51, 0.05, 0.03, Set.of(), Set.of(1L)),
-            new Hero(20, "Lolita", Set.of(HeroRole.SUPPORT, HeroRole.TANK), Set.of(Lane.ROAM), 0.53, 0.04, 0.08, Set.of(1L), Set.of()),
-            new Hero(36, "Aurora", Set.of(HeroRole.MAGE), Set.of(Lane.MID), 0.52, 0.05, 0.04, Set.of(), Set.of(6L)),
-            new Hero(65, "Claude", Set.of(HeroRole.MARKSMAN), Set.of(Lane.GOLD), 0.51, 0.06, 0.05, Set.of(), Set.of(6L)),
-            new Hero(84, "Ling", Set.of(HeroRole.ASSASSIN), Set.of(Lane.JUNGLE), 0.50, 0.05, 0.10, Set.of(), Set.of())
+            new Hero(1, "Miya", null, Set.of(HeroRole.MARKSMAN), Set.of(Lane.GOLD), 0.50, 0.07, 0.01, Set.of(), Set.of(6L)),
+            new Hero(6, "Tigreal", null, Set.of(HeroRole.TANK), Set.of(Lane.ROAM), 0.51, 0.05, 0.03, Set.of(), Set.of(1L)),
+            new Hero(20, "Lolita", null, Set.of(HeroRole.SUPPORT, HeroRole.TANK), Set.of(Lane.ROAM), 0.53, 0.04, 0.08, Set.of(1L), Set.of()),
+            new Hero(36, "Aurora", null, Set.of(HeroRole.MAGE), Set.of(Lane.MID), 0.52, 0.05, 0.04, Set.of(), Set.of(6L)),
+            new Hero(65, "Claude", null, Set.of(HeroRole.MARKSMAN), Set.of(Lane.GOLD), 0.51, 0.06, 0.05, Set.of(), Set.of(6L)),
+            new Hero(84, "Ling", null, Set.of(HeroRole.ASSASSIN), Set.of(Lane.JUNGLE), 0.50, 0.05, 0.10, Set.of(), Set.of())
     );
 
     @Override

@@ -14,8 +14,10 @@ spring:
 
 app:
   mlbb:
-    # none = fail closed; rone = use the unofficial Rone Arena hosted API.
+    # none = use no external provider; rone = use the unofficial Rone Arena hosted API.
     identity-provider: ${MLBB_IDENTITY_PROVIDER:none}
+    data-provider: ${MLBB_DATA_PROVIDER:none}
+    hero-sync-on-startup: ${MLBB_HERO_SYNC_ON_STARTUP:false}
     rone:
       base-url: ${RONE_ARENA_BASE_URL:https://arena.rone.dev/api}
 
