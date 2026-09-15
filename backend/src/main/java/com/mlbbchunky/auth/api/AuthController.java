@@ -46,12 +46,19 @@ public class AuthController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<AuthenticatedUser> verify(@Valid @RequestBody VerifyRequest request) {
+    public ResponseEntity<AuthenticatedUser> verify(
+            @Valid @RequestBody VerifyRequest request,
+            @CookieValue(name = SESSION_COOKIE, required = false) String existingSessionToken
+    ) {
         AuthService.Session session = authService.verify(
                 request.roleId(),
                 request.zoneId(),
                 request.verificationCode()
         );
+
+        // Verification succeeded and a replacement session now exists, so any previous
+        // browser session can be revoked without locking the user out if verification fails.
+        authService.logout(existingSessionToken);
 
         Duration maxAge = Duration.between(Instant.now(), session.expiresAt());
         ResponseCookie cookie = ResponseCookie.from(SESSION_COOKIE, session.token())
