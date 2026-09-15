@@ -1,29 +1,37 @@
+import Link from "next/link";
+import { SiteNav } from "./components/SiteNav";
+
 const features = [
   {
     title: "Draft Assistant",
-    text: "Set your lane, allies and enemy picks. Chunky ranks the best available heroes and explains every score.",
+    text: "Set your lane, allies, enemies and bans. Chunky ranks available heroes and explains every score.",
+    href: "/draft",
+    kicker: "Pick smarter",
   },
   {
     title: "Community Meta",
-    text: "See what verified Chunky players actually favorite and play — globally or by rank, lane and region.",
+    text: "Explore hero data now and grow into verified-player popularity segmented by rank, lane and region.",
+    href: "/meta",
+    kicker: "Read the meta",
   },
   {
     title: "Hero Rooms",
-    text: "Discuss matchups, builds, patches and draft decisions with players around each hero.",
+    text: "A home for matchup advice, builds, patches and draft discussions around the heroes you play.",
+    href: "/community",
+    kicker: "Talk strategy",
   },
   {
     title: "MLBB-linked identity",
-    text: "Link an account with User ID, Zone ID and an in-game verification code instead of creating another password.",
+    text: "Link your own MLBB account with User ID, Zone ID and an in-game verification code — no MLBB password stored.",
+    href: "/link-account",
+    kicker: "Verify ownership",
   },
 ];
 
 export default function Home() {
   return (
     <main>
-      <nav>
-        <strong>MLBB CHUNKY</strong>
-        <span>Draft · Meta · Community</span>
-      </nav>
+      <SiteNav />
 
       <section className="hero">
         <p className="eyebrow">DRAFT WITH CONTEXT</p>
@@ -33,22 +41,33 @@ export default function Home() {
           verified-player popularity and community knowledge.
         </p>
         <div className="actions">
-          <button>Open Draft Assistant</button>
-          <button className="secondary">Explore Heroes</button>
+          <Link className="button" href="/draft">Open Draft Assistant</Link>
+          <Link className="button secondary" href="/heroes">Explore Heroes</Link>
         </div>
       </section>
 
       <section className="grid">
         {features.map((feature) => (
-          <article key={feature.title}>
+          <Link className="feature-card" href={feature.href} key={feature.title}>
+            <span className="card-kicker">{feature.kicker}</span>
             <h2>{feature.title}</h2>
             <p>{feature.text}</p>
-          </article>
+            <span className="card-link">Open →</span>
+          </Link>
         ))}
       </section>
 
+      <section className="split-callout">
+        <div>
+          <p className="eyebrow">VERIFIED COMMUNITY</p>
+          <h2>Popularity should mean more than global pick rate.</h2>
+          <p>Chunky will separately track the official meta and what verified Chunky players actually favorite and play.</p>
+        </div>
+        <Link className="button secondary" href="/leaderboard">Open leaderboard</Link>
+      </section>
+
       <footer>
-        Mobile Legends: Bang Bang and related marks belong to their respective owners. MLBB Chunky is an unofficial community project. Optional account-data integration is powered by {" "}
+        Mobile Legends: Bang Bang and related marks belong to their respective owners. MLBB Chunky is an unofficial community project. Optional account-data integration is powered by{" "}
         <a href="https://arena.rone.dev" target="_blank" rel="noreferrer">Rone Arena</a> when enabled.
       </footer>
     </main>
