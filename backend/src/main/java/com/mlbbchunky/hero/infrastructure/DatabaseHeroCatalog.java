@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,13 +78,52 @@ public class DatabaseHeroCatalog implements HeroCatalog {
         jdbc.sql("select hero_id, role from hero_role")
                 .query((rs, rowNum) -> new RoleRow(rs.getLong("hero_id"), HeroRole.valueOf(rs.getString("role"))))
                 .list()
-                .forEach(row -> roles.computeIfAbsent(row.heroId(), ignored -> new java.util.HashSet<>()).add(row.role()));
+                .forEach(row -> roles.computeIfAbsent(row.heroId(), ignored -> new HashSet<>()).add(row.role()));
 
         Map<Long, Set<Lane>> lanes = new HashMap<>();
         jdbc.sql("select hero_id, lane from hero_lane")
                 .query((rs, rowNum) -> new LaneRow(rs.getLong("hero_id"), Lane.valueOf(rs.getString("lane"))))
                 .list()
-                .forEach(row -> lanes.computeIfAbsent(row.heroId(), ignored -> new java.util.HashSet<>()).add(row.lane()));
+                .forEach(row -> lanes.computeIfAbsent(row.heroId(), ignored -> new HashSet<>()).add(row.lane()));
+
+        Map<Long, Set<Long>> strongAgainst = new HashMap<>();
+        jdbc.sql("""
+                select subject_hero_id, related_hero_id
+                from hero_relationship
+                where relationship_type = 'COUNTER'
+                  and rank_scope = :rankScope
+                  and period_days = :periodDays
+                """)
+                .param("rankScope", metaRankScope)
+                .param("periodDays", metaPeriodDays)
+                .query((rs, rowNum) -> new RelationshipRow(
+                        rs.getLong("subject_hero_id"),
+                        rs.getLong("related_hero_id")
+                ))
+                .list()
+                .forEach(row -> strongAgainst
+                        .computeIfAbsent(row.relatedHeroId(), ignored -> new HashSet<>())
+                        .add(row.subjectHeroId()));
+
+        Map<Long, Set<Long>> synergies = new HashMap<>();
+        jdbc.sql("""
+                select subject_hero_id, related_hero_id
+                from hero_relationship
+                where relationship_type = 'SYNERGY'
+                  and rank_scope = :rankScope
+                  and period_days = :periodDays
+                """)
+                .param("rankScope", metaRankScope)
+                .param("periodDays", metaPeriodDays)
+                .query((rs, rowNum) -> new RelationshipRow(
+                        rs.getLong("subject_hero_id"),
+                        rs.getLong("related_hero_id")
+                ))
+                .list()
+                .forEach(row -> {
+                    synergies.computeIfAbsent(row.subjectHeroId(), ignored -> new HashSet<>()).add(row.relatedHeroId());
+                    synergies.computeIfAbsent(row.relatedHeroId(), ignored -> new HashSet<>()).add(row.subjectHeroId());
+                });
 
         return heroes.stream()
                 .map(row -> new Hero(
@@ -95,8 +135,8 @@ public class DatabaseHeroCatalog implements HeroCatalog {
                         row.winRate(),
                         row.pickRate(),
                         row.banRate(),
-                        Set.of(),
-                        Set.of()
+                        Set.copyOf(strongAgainst.getOrDefault(row.id(), Set.of())),
+                        Set.copyOf(synergies.getOrDefault(row.id(), Set.of()))
                 ))
                 .toList();
     }
@@ -122,4 +162,6 @@ public class DatabaseHeroCatalog implements HeroCatalog {
     private record RoleRow(long heroId, HeroRole role) {}
 
     private record LaneRow(long heroId, Lane lane) {}
+
+    private record RelationshipRow(long subjectHeroId, long relatedHeroId) {}
 }
